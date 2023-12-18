@@ -3,7 +3,8 @@ const express = require('express');
 const http = require('http');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const { Server } = require('socket.io');
-const cors = require('cors')
+const cors = require('cors');
+const { emit } = require('process');
 
 const app = express();
 const server = http.createServer(app);
@@ -39,16 +40,61 @@ const io = new Server(server, {
   },
 });
 
+let users = [];
+
+const messages = {
+  general: [],
+  notSilly: [],
+  silly: [],
+  minecraft: [],
+};
+
 io.on('connection', (socket) => {
-  console.log(`User Connected ${socket.id}`);
 
-  socket.on('join_room', (data) => {
-    socket.join(data);
+  socket.on('join_server', (username) => {
+    const user = {
+      username,
+      id: socket.id,
+    };
+    users.push(user);
+    io.emit('new_user', users);
+    console.log(users)
+  });
+
+  socket.on('join_room', (roomName, callBack) => {
+    socket.join(roomName);
+    callBack(messages[roomName]);
   })
 
-  socket.on('send_message', (data) => {
-    socket.to(data.room).emit('receive_message', data);
-  })
+  socket.on('send_message', ({ content, roomNumber, sender, chatName, isChannel }) => {
+    if (isChannel) {
+      const payload = {
+        content,
+        chatName,
+        sender,
+      };
+      socket.to(roomNumber).emit('new_message', payload);
+    } else {
+      const payload = {
+        content,
+        chatName: sender,
+        sender,
+      };
+      socket.to(roomNumber).emit('new_message', payload);
+    }
+    
+    if (messages[chatName]) {
+      messages[chatName].push({
+        sender,
+        content,
+      });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    users = users.filter(u => u.id !== socket.id);
+    io.emit('new_user', users)
+  });
 })
 
 /* =================== Set-Up Server =================== */
