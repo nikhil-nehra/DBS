@@ -1,13 +1,6 @@
 import React from 'react';
 import styled from 'styled-components'
 
-const rooms = [
-    'general',
-    'notSilly',
-    'silly',
-    'minecraft',
-]
-
 const Container = styled.div`
     height: 100vh;
     width: 100%;
@@ -124,7 +117,8 @@ function Chat(props) {
       <Container>
         <SideBar>
             <h3>Channels</h3>
-            {rooms.map(renderRooms)}
+            {props.allRooms.map(renderRooms)}
+            <button onClick={props.createRoom}>Create Room</button>
             <h3>All Users</h3>
             {props.allUsers.map(renderUsers)}
         </SideBar>

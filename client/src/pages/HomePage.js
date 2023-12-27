@@ -10,11 +10,19 @@ const initialMessageState = {
   minecraft: [],
 };
 
+const initialRoomState = [
+  'general',
+  'notSilly',
+  'silly',
+  'minecraft',
+]
+
 function HomePage({ username }) {
   const [connected, setConnected] = useState(false);
   const [currentChat, setCurrentChat] = useState({ isChannel: true, chatName: 'general', receiverID: '' });
   const [connectedRooms, setConnectedRooms] = useState(['general']);
   const [allUsers, setAllUsers] = useState([]);
+  const [allRooms, setAllRooms] = useState(initialRoomState);
   const [messages, setMessages] = useState(initialMessageState);
   const [message, setMessage] = useState('');
   const socketRef = useRef();
@@ -96,6 +104,26 @@ function HomePage({ username }) {
     setCurrentChat(currentChat)
   }
 
+  function createRoom() {
+    // Generate a unique room name (you can use a more sophisticated method)
+    const newRoom = `room${connectedRooms.length + 1}`;
+    
+    // Update state to join the new room
+    joinRoom(newRoom);
+
+    // Update state using immer to add the new room to allRooms
+    setAllRooms(prevRooms =>
+      produce(prevRooms, draft => {
+        draft.push(newRoom);
+      })
+    );
+
+    // Update initialMessageState with the new room using immer
+    setMessages(messages => produce(messages, draft => {
+      draft[newRoom] = [];
+    }));
+  }
+
   useEffect(() => {
     setMessage('');
   }, [messages]);
@@ -111,7 +139,9 @@ function HomePage({ username }) {
           sendMessage={sendMessage}
           yourID={socketRef.current ? socketRef.current.id : ''}
           allUsers={allUsers}
+          allRooms={allRooms}
           joinRoom={joinRoom}
+          createRoom={createRoom}
           connectedRooms={connectedRooms}
           currentChat={currentChat}
           toggleChat={toggleChat}
