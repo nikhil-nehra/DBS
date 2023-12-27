@@ -104,9 +104,9 @@ function HomePage({ username }) {
     setCurrentChat(currentChat)
   }
 
-  function createRoom() {
-    // Generate a unique room name (you can use a more sophisticated method)
-    const newRoom = `room${connectedRooms.length + 1}`;
+  function createRoom(roomName) {
+    // Unique room name (use a more sophisticated method later)
+    const newRoom = roomName;
     
     // Update state to join the new room
     joinRoom(newRoom);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components'
 
 const Container = styled.div`
@@ -32,6 +32,13 @@ const TextBox = styled.textarea`
     width: 100%;
 `;
 
+const RoomNameBox = styled.input`
+    height: 15px;
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+`;
+
 const ChannelInfo = styled.div`
     height: 10%;
     width: 100%;
@@ -48,7 +55,11 @@ const Messages = styled.div`
     align-items: flex-start;
 `;
 
+
 function Chat(props) {
+    const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+    const [newRoomName, setNewRoomName] = useState('');
+
 
     function renderRooms(room) {
         const currentChat = {
@@ -107,18 +118,67 @@ function Chat(props) {
         );
     }
 
-    function handleKeyPress(e) {
-        if (e.key === 'Enter') {
-            props.sendMessage();
+    const handleCreateRoomClick = () => {
+        setIsCreatingRoom(true);
+    };
+
+    const handleCreateRoomCancel = () => {
+        setIsCreatingRoom(false);
+    };
+
+    const handleCreateRoom = () => {
+        if (newRoomName.trim() !== '') {
+            props.createRoom(newRoomName);
+            setIsCreatingRoom(false);
+            setNewRoomName('');
         }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            if (isCreatingRoom) {
+                handleCreateRoom();
+            } else {
+                props.sendMessage();
+            }
+        }
+    };
+
+    function CreateRoomUI({ newRoomName, setNewRoomName, handleKeyPress, handleCreateRoom }) {
+        return (
+            <>
+                <RoomNameBox
+                    value={newRoomName}
+                    onChange={(e) => setNewRoomName(e.target.value)}
+                    onKeyUp={handleKeyPress}
+                    placeholder='Enter room name'
+                />
+                <button onClick={handleCreateRoomCancel}>Cancel</button>
+            </>
+        );
     }
+
+    const handleCreateRoomUI = () => {
+        if (isCreatingRoom) {
+            return (
+                <CreateRoomUI
+                    newRoomName={newRoomName}
+                    setNewRoomName={setNewRoomName}
+                    handleKeyPress={handleKeyPress}
+                    handleCreateRoom={handleCreateRoom}
+                />
+            );
+        } else {
+            return <button onClick={handleCreateRoomClick}>Create Room</button>;
+        }
+    };
 
     return (
       <Container>
         <SideBar>
             <h3>Channels</h3>
             {props.allRooms.map(renderRooms)}
-            <button onClick={props.createRoom}>Create Room</button>
+            {handleCreateRoomUI()}
             <h3>All Users</h3>
             {props.allUsers.map(renderUsers)}
         </SideBar>

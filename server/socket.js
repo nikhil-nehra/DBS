@@ -1,7 +1,8 @@
 // socket.js
 const { Server } = require('socket.io');
 
-const users = [];
+let users = [];
+let rooms = ['general', 'notSilly', 'silly', 'minecraft'];
 const messages = {
   general: [],
   notSilly: [],
@@ -31,6 +32,12 @@ function setupSocket(server) {
     socket.on('join_room', (roomName, callBack) => {
       socket.join(roomName);
       callBack(messages[roomName]);
+
+      if (!rooms.includes(roomName)) {
+        rooms.push(roomName);
+        messages[roomName] = [];
+        console.log(messages)
+      }
     });
 
     socket.on('send_message', ({ content, roomNumber, sender, chatName, isChannel }) => {
