@@ -1,6 +1,5 @@
 // socket.js
 const { Server } = require('socket.io');
-const cors = require('cors');
 
 const users = [];
 const messages = {
