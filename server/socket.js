@@ -2,12 +2,11 @@
 const { Server } = require('socket.io');
 
 let users = [];
-let rooms = ['general', 'notSilly', 'silly', 'minecraft'];
+let rooms = [
+  { name: 'general', host: null },
+];
 const messages = {
   general: [],
-  notSilly: [],
-  silly: [],
-  minecraft: [],
 };
 
 function setupSocket(server) {
@@ -29,15 +28,19 @@ function setupSocket(server) {
       console.log(users);
     });
 
-    socket.on('join_room', (roomName, callBack) => {
-      socket.join(roomName);
-      callBack(messages[roomName]);
+    socket.on('join_room', (room, callBack) => {
+      const exisitngRoom = rooms.find(roomInRooms => roomInRooms.name === room.name)
 
-      if (!rooms.includes(roomName)) {
-        rooms.push(roomName);
-        messages[roomName] = [];
-        console.log(messages)
+      if (exisitngRoom === undefined) {
+        room = { name: room.name, host: room.host}
+        rooms.push(room);
+        messages[room.name] = [];
+      } else {
+        room = exisitngRoom
       }
+
+      socket.join(room.name);
+      callBack(messages[room.name], room);
     });
 
     socket.on('send_message', ({ content, roomNumber, sender, chatName, isChannel }) => {
@@ -63,6 +66,7 @@ function setupSocket(server) {
           content,
         });
       }
+
     });
 
     socket.on('disconnect', () => {
