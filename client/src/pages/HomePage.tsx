@@ -1,48 +1,70 @@
-import { useEffect, useState, useRef } from 'react';
-import * as io from "socket.io-client";
+import { useEffect, useState, useRef, ChangeEvent } from 'react';
 import { Socket } from "socket.io-client";
-import Chat from '../components/Chat';
 import { produce } from 'immer';
+import * as io from "socket.io-client";
+import Chat from '../components/Chat';
 
+interface Message {
+  content: string;
+  sender: string;
+}
 
-const initialMessageState = {
+interface User {
+  id: string;
+  username: string;
+}
+
+interface Room {
+  name: string;
+  host: string | null;
+}
+
+interface ChatState {
+  isChannel: boolean;
+  chat: Room;
+  receiverID: string;
+}
+
+const initialMessageState: { [key: string]: Message[] } = {
   general: [],
 };
 
-const initialRoomState = [
+const initialRoomState: Room[] = [
   { name: 'general', host: null },
-]
+];
 
-function HomePage({ username }) {
+function HomePage({ username }: { username: string }): JSX.Element {
   const [connected, setConnected] = useState(false);
-  const [currentChat, setCurrentChat] = useState({ isChannel: true, chat: { name: 'general', host: null }, receiverID: '' });
-  const [connectedRooms, setConnectedRooms] = useState(initialRoomState);
-  const [allUsers, setAllUsers] = useState([]);
-  const [allRooms, setAllRooms] = useState([]);
+  const [currentChat, setCurrentChat] = useState<ChatState>({ isChannel: true, chat: { name: 'general', host: null }, receiverID: '' });
+  const [connectedRooms, setConnectedRooms] = useState<Room[]>(initialRoomState);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
   const [messages, setMessages] = useState(initialMessageState);
   const [message, setMessage] = useState('');
-  const socketRef = useRef<Socket>();
+
+  const socketRef = useRef<Socket | undefined>();
 
   function handleConnect() {
     connect(username);
   }
 
-  function connect(username) {
+  function connect(username: string) {
     setConnected(true);
     socketRef.current = io.connect('http://localhost:3001');
     socketRef.current.emit('join_server', username);
-    socketRef.current.emit('join_room', initialRoomState[0], (messages) => roomJoinCallback(messages, initialRoomState[0]))
-    socketRef.current.on('new_user', allUsers => {
-      setAllUsers(allUsers);
+    socketRef.current.emit('join_room', initialRoomState[0], (receivedMessages: Message[]) => roomJoinCallback(receivedMessages, initialRoomState[0]));
+
+    socketRef.current?.on('new_user', (newUsers: User[]) => {
+      setAllUsers(newUsers);
     });
-    socketRef.current.on('new_message', ({content, sender, chatName}) => {
-      console.log('New_Message');
-      setMessages(messages => {
-        const newMessages = produce(messages, draft => {
+
+    socketRef.current?.on('new_message', ({ content, sender, chatName }: { content: string, sender: string, chatName: string }) => {
+      setMessages(prevMessages => {
+        const newMessages = produce(prevMessages, draft => {
           if (draft[chatName]) {
-            draft[chatName].push({content, sender});
+            draft[chatName].push({ content, sender });
           } else {
-            draft[chatName] = [{content, sender}];
+            draft[chatName] = [{ content, sender }];
           }
         });
         return newMessages;
@@ -50,33 +72,29 @@ function HomePage({ username }) {
     });
   }
 
-  function joinRoom(room) {
+  function joinRoom(room: Room) {
     const newConnectedRooms = produce(connectedRooms, draft => {
       draft.push(room);
     });
-    socketRef.current.emit('join_room', room, (messages, newRoom) => roomJoinCallback(messages, newRoom));
-    
+
+    socketRef.current?.emit('join_room', room, (receivedMessages: Message[], newRoom: Room) => roomJoinCallback(receivedMessages, newRoom));
+
     setConnectedRooms(newConnectedRooms);
   }
 
-  function roomJoinCallback(incomingMessages, newRoom) {
-    // Update state using immer to add the new room to allRooms
+  function roomJoinCallback(incomingMessages: Message[], newRoom: Room) {
     const newAllRooms = produce(allRooms, draft => {
       draft.push(newRoom);
-    })
+    });
     setAllRooms(newAllRooms);
-
-    console.log(newRoom)
 
     const newMessages = produce(messages, draft => {
       draft[newRoom.name] = incomingMessages;
     });
     setMessages(newMessages);
-
-    console.log(messages)
   }
 
-  function handleMessageChange(e) {
+  function handleMessageChange(e: ChangeEvent<HTMLTextAreaElement>) {
     setMessage(e.target.value);
   }
 
@@ -89,33 +107,29 @@ function HomePage({ username }) {
       isChannel: currentChat.isChannel,
     };
 
-    socketRef.current.emit('send_message', payload);
-    
+    socketRef.current?.emit('send_message', payload);
+
     const newMessages = produce(messages, draft => {
       draft[currentChat.chat.name].push({
         sender: username,
         content: message,
       });
     });
-    setMessages(newMessages)
+    setMessages(newMessages);
   }
 
-  function toggleChat(currentChat) {
-    if(!messages[currentChat.chat.name]) {
+  function toggleChat(newChat: ChatState) {
+    if (!messages[newChat.chat.name]) {
       const newMessages = produce(messages, draft => {
-        draft[currentChat.chat.name] = [];
+        draft[newChat.chat.name] = [];
       });
-      setMessages(newMessages)
+      setMessages(newMessages);
     }
-    setCurrentChat(currentChat)
-    console.log(currentChat)
+    setCurrentChat(newChat);
   }
 
-  function createRoom(roomName, hostName) {
-    // Unique room name (use a more sophisticated method later)
-    const newRoom = {name: roomName, host: hostName};
-
-    // Update state to join the new room
+  function createRoom(roomName: string, hostName: string) {
+    const newRoom: Room = { name: roomName, host: hostName };
     joinRoom(newRoom);
   }
 
@@ -132,7 +146,7 @@ function HomePage({ username }) {
           message={message}
           handleMessageChange={handleMessageChange}
           sendMessage={sendMessage}
-          yourID={socketRef.current ? socketRef.current.id : ''}
+          yourID={socketRef.current?.id || ''}
           allUsers={allUsers}
           allRooms={allRooms}
           joinRoom={joinRoom}

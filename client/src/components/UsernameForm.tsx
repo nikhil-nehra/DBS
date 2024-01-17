@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { ChangeEvent, MouseEvent } from 'react';
 
-function Form(props) {
+type FormProps = {
+    username: string;
+    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    connect: (e: MouseEvent<HTMLButtonElement>) => void;
+};
+
+function Form(props: FormProps): JSX.Element {
     return (
         <form>
             <input
@@ -12,6 +18,6 @@ function Form(props) {
             <button onClick={props.connect}>Connect</button>
         </form>
     );
-};
+}
 
 export default Form;

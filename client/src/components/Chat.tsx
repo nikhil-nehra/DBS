@@ -1,5 +1,41 @@
-import React, { useState } from 'react';
-import styled from 'styled-components'
+import React, { useState, ChangeEvent, KeyboardEvent } from 'react';
+import styled from 'styled-components';
+
+interface Room {
+  name: string;
+  host: string | null;
+}
+
+interface User {
+  id: string;
+  username: string;
+}
+
+interface Message {
+  sender: string;
+  content: string;
+}
+
+interface ChatProps {
+  toggleChat: (chat: ChatState) => void;
+  joinRoom: (roomName: Room) => void;
+  createRoom: (roomName: string, hostName: string) => void;
+  sendMessage: () => void;
+  yourID: string;
+  messages: Message[];
+  currentChat: ChatState;
+  connectedRooms: Room[];
+  allRooms: Room[];
+  allUsers: User[];
+  message: string;
+  handleMessageChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+}
+
+interface ChatState {
+  isChannel: boolean;
+  chat: Room;
+  receiverID: string;
+}
 
 const Container = styled.div`
     height: 100vh;
@@ -55,14 +91,12 @@ const Messages = styled.div`
     align-items: flex-start;
 `;
 
-
-function Chat(props) {
+function Chat(props: ChatProps): JSX.Element  {
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
     const [newRoomName, setNewRoomName] = useState('');
 
-
-    function renderRooms(room) {
-        const currentChat = {
+    function renderRooms(room: Room) {
+        const currentChat: ChatState = {
             isChannel: true,
             chat: room,
             receiverID: '',
@@ -74,7 +108,7 @@ function Chat(props) {
         );
     }
 
-    function renderUsers(user) {
+    function renderUsers(user: User) {
         if (user.id === props.yourID) {
             return (
                 <Row key={user.id}>
@@ -82,9 +116,9 @@ function Chat(props) {
                 </Row>
             );
         }
-        const currentChat = {
+        const currentChat: ChatState = {
             isChannel: false,
-            chat: {name: user.username, host: null},
+            chat: { name: user.username, host: null },
             receiverID: user.id,
         };
         return (
@@ -96,7 +130,7 @@ function Chat(props) {
         );
     }
 
-    function renderMessages(message, index) {
+    function renderMessages(message: Message, index: number) {
         return (
             <div key={index}>
                 <h3>{message.sender}</h3>
@@ -114,7 +148,7 @@ function Chat(props) {
         );
     } else {
         body = (
-            <button onClick={() => props.joinRoom(props.currentChat.chat.name)}>Join {props.currentChat.chat.name}</button>
+            <button onClick={() => props.joinRoom(props.currentChat.chat)}>Join {props.currentChat.chat.name}</button>
         );
     }
 
@@ -129,19 +163,19 @@ function Chat(props) {
     const handleCreateRoom = () => {
         if (newRoomName.trim() !== '') {
             props.createRoom(newRoomName, props.yourID);
-            
+
             setIsCreatingRoom(false);
             setNewRoomName('');
         }
     };
 
-    const handleRoomNameKeyPress = (e) => {
+    const handleRoomNameKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             handleCreateRoom();
         }
     };
-    
-    const handleMessageKeyPress = (e) => {
+
+    const handleMessageKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter') {
             props.sendMessage();
         }
@@ -165,43 +199,43 @@ function Chat(props) {
         }
     };
 
-    const findUsernameById = (userId) => {
+    const findUsernameById = (userId: string) => {
         const user = props.allUsers.find(user => user.id === userId);
-        return user.username
+        return user?.username || '';
     };
 
     return (
-      <Container>
-        <SideBar>
-            <h3>Channels</h3>
-            {props.allRooms.map(renderRooms)}
-            {handleCreateRoomUI()}
-            <h3>All Users</h3>
-            {props.allUsers.map(renderUsers)}
-        </SideBar>
-        <ChatPanel>
-            <ChannelInfo>
-                {props.currentChat.chat.name}
-                {props.currentChat.chat.host !== null && (
-                    <>
-                    <br />
-                    <span style={{ fontSize: '0.8em', color: 'grey' }}>
-                        Host: {findUsernameById(props.currentChat.chat.host)}
-                    </span>
-                    </>
-                )}
-            </ChannelInfo>
-            <BodyContainer>
-                {body}
-            </BodyContainer>
-            <TextBox
-                value={props.message}
-                onChange={props.handleMessageChange}
-                onKeyUp ={handleMessageKeyPress}
-                placeholder='say something'
-            />
-        </ChatPanel>
-      </Container>
+        <Container>
+            <SideBar>
+                <h3>Channels</h3>
+                {props.allRooms.map(renderRooms)}
+                {handleCreateRoomUI()}
+                <h3>All Users</h3>
+                {props.allUsers.map(renderUsers)}
+            </SideBar>
+            <ChatPanel>
+                <ChannelInfo>
+                    {props.currentChat.chat.name}
+                    {props.currentChat.chat.host !== null && (
+                        <>
+                            <br />
+                            <span style={{ fontSize: '0.8em', color: 'grey' }}>
+                                Host: {findUsernameById(props.currentChat.chat.host)}
+                            </span>
+                        </>
+                    )}
+                </ChannelInfo>
+                <BodyContainer>
+                    {body}
+                </BodyContainer>
+                <TextBox
+                    value={props.message}
+                    onChange={props.handleMessageChange}
+                    onKeyUp={handleMessageKeyPress}
+                    placeholder='say something'
+                />
+            </ChatPanel>
+        </Container>
     );
 }
 

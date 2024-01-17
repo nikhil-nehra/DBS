@@ -1,15 +1,22 @@
-// socket.js
-const { Server } = require('socket.io');
+// socket.ts
+import { Server, Socket } from 'socket.io';
+import * as http from 'http';
 
-let users = [];
-let rooms = [
-  { name: 'general', host: null },
-];
-const messages = {
-  general: [],
-};
+interface User {
+  username: string;
+  id: string;
+}
 
-function setup(server) {
+interface Room {
+  name: string;
+  host: string | null;
+}
+
+interface Messages {
+  [key: string]: { sender: string; content: string }[];
+}
+
+function setup(server: http.Server): void {
   const io = new Server(server, {
     cors: {
       origin: 'http://localhost:3000',
@@ -17,9 +24,17 @@ function setup(server) {
     },
   });
 
-  io.on('connection', (socket) => {
-    socket.on('join_server', (username) => {
-      const user = {
+  let users: User[] = [];
+  let rooms: Room[] = [
+    { name: 'general', host: null },
+  ];
+  const messages: Messages = {
+    general: [],
+  };
+
+  io.on('connection', (socket: Socket) => {
+    socket.on('join_server', (username: string) => {
+      const user: User = {
         username,
         id: socket.id,
       };
@@ -28,22 +43,22 @@ function setup(server) {
       console.log(users);
     });
 
-    socket.on('join_room', (room, callBack) => {
-      const exisitngRoom = rooms.find(roomInRooms => roomInRooms.name === room.name)
+    socket.on('join_room', (room: Room, callBack: (messages: { sender: string; content: string }[], newRoom: Room) => void) => {
+      const existingRoom = rooms.find((roomInRooms) => roomInRooms.name === room.name);
 
-      if (exisitngRoom === undefined) {
-        room = { name: room.name, host: room.host}
+      if (existingRoom === undefined) {
+        room = { name: room.name, host: room.host };
         rooms.push(room);
         messages[room.name] = [];
       } else {
-        room = exisitngRoom
+        room = existingRoom;
       }
 
       socket.join(room.name);
       callBack(messages[room.name], room);
     });
 
-    socket.on('send_message', ({ content, roomNumber, sender, chatName, isChannel }) => {
+    socket.on('send_message', ({ content, roomNumber, sender, chatName, isChannel }: { content: string; roomNumber: string; sender: string; chatName: string; isChannel: boolean }) => {
       if (isChannel) {
         const payload = {
           content,
@@ -66,11 +81,10 @@ function setup(server) {
           content,
         });
       }
-
     });
 
     socket.on('disconnect', () => {
-      users = users.filter(u => u.id !== socket.id);
+      users = users.filter((u) => u.id !== socket.id);
       io.emit('new_user', users);
     });
   });

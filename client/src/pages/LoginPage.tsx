@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import Form from '../components/UsernameForm';
 
-function LoginPage({ onConnect }) {
-  const [username, setUsername] = useState('');
+interface LoginPageProps {
+  onConnect: (username: string) => void;
+}
 
-  function handleChange(e) {
+function LoginPage({ onConnect }: LoginPageProps): JSX.Element {
+  const [username, setUsername] = useState<string>('');
+
+  function handleChange(e: ChangeEvent<HTMLInputElement>): void {
     setUsername(e.target.value);
   }
 

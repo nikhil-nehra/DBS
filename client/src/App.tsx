@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 
-function App() {
-  const [username, setUsername] = useState('');
+interface AppProps {}
 
-  function handleConnect(user) {
+function App({}: AppProps): JSX.Element {
+  const [username, setUsername] = useState<string>('');
+
+  function handleConnect(user: string): void {
     setUsername(user);
   }
 
