@@ -15,7 +15,7 @@ function Form(props: FormProps): JSX.Element {
                 value={props.username}
                 onChange={props.onChange}
             />
-            <button onClick={props.connect}>Connect</button>
+            <button onClick={props.connect}>Log In</button>
         </form>
     );
 }

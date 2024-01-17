@@ -6,6 +6,8 @@
       "jsx": "react-jsx",
       "allowSyntheticDefaultImports": true,
       "noImplicitAny": true,
+      "strictNullChecks": true,
+      "noImplicitThis": true,
     },
     "include": ["./src/**/*"]
 }
