@@ -1,10 +1,10 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "src/server.js",
+  "main": "src/server.ts",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon src/server.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -13,5 +13,8 @@
     "nodemon": "^3.0.2",
     "socket.io": "^4.7.2",
     "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
   }
 }

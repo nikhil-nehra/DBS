@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
-import io from 'socket.io-client';
+import * as io from "socket.io-client";
+import { Socket } from "socket.io-client";
 import Chat from '../components/Chat';
 import { produce } from 'immer';
+
 
 const initialMessageState = {
   general: [],
@@ -19,7 +21,7 @@ function HomePage({ username }) {
   const [allRooms, setAllRooms] = useState([]);
   const [messages, setMessages] = useState(initialMessageState);
   const [message, setMessage] = useState('');
-  const socketRef = useRef();
+  const socketRef = useRef<Socket>();
 
   function handleConnect() {
     connect(username);
