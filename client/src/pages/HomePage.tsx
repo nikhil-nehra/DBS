@@ -2,6 +2,9 @@ import { useEffect, useState, useRef, ChangeEvent } from 'react';
 import { Socket } from "socket.io-client";
 import { produce } from 'immer';
 import * as io from "socket.io-client";
+
+import styled from 'styled-components';
+import Sidebar from '../components/Sidebar';
 import Chat from '../components/Chat';
 
 interface Message {
@@ -142,23 +145,39 @@ function HomePage({ username }: { username: string }): JSX.Element {
       {!connected ? (
         <button onClick={handleConnect}>Connect</button>
       ) : (
-        <Chat
-          message={message}
-          handleMessageChange={handleMessageChange}
-          sendMessage={sendMessage}
-          yourID={socketRef.current?.id || ''}
-          allUsers={allUsers}
-          allRooms={allRooms}
-          joinRoom={joinRoom}
-          createRoom={createRoom}
-          connectedRooms={connectedRooms}
-          currentChat={currentChat}
-          toggleChat={toggleChat}
-          messages={messages[currentChat.chat.name]}
-        />
+        <Container>
+          <Sidebar
+            allRooms={allRooms}
+            allUsers={allUsers}
+            yourID={socketRef.current?.id || ''}
+            createRoom={createRoom}
+            sendMessage={sendMessage}
+            toggleChat={toggleChat}
+          />
+          <Chat
+            message={message}
+            handleMessageChange={handleMessageChange}
+            sendMessage={sendMessage}
+            yourID={socketRef.current?.id || ''}
+            allUsers={allUsers}
+            allRooms={allRooms}
+            joinRoom={joinRoom}
+            createRoom={createRoom}
+            connectedRooms={connectedRooms}
+            currentChat={currentChat}
+            toggleChat={toggleChat}
+            messages={messages[currentChat.chat.name]}
+          />
+        </Container>
       )}
     </div>
   );
 }
+
+const Container = styled.div`
+    height: 100vh;
+    width: 100%;
+    display: flex;
+`;
 
 export default HomePage;
