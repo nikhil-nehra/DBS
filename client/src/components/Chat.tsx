@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, KeyboardEvent } from 'react';
+import {ChangeEvent, KeyboardEvent } from 'react';
 import styled from 'styled-components';
 
 interface Room {
@@ -17,16 +17,11 @@ interface Message {
 }
 
 interface ChatProps {
-  toggleRoom: (room: RoomState) => void;
   joinRoom: (roomName: Room) => void;
-  createRoom: (roomName: string, hostName: string) => void;
   sendMessage: () => void;
-  yourID: string;
   messages: Message[];
   currentRoom: RoomState;
   connectedRooms: Room[];
-  allRooms: Room[];
-  allUsers: User[];
   message: string;
   handleMessageChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
 }
@@ -66,11 +61,6 @@ function Chat(props: ChatProps): JSX.Element  {
         }
     };
 
-    const findUsernameById = (userId: string) => {
-        const user = props.allUsers.find(user => user.id === userId);
-        return user?.username || '';
-    };
-
     return (
         <ChatPanel>
             <ChatContainer>
@@ -85,19 +75,6 @@ function Chat(props: ChatProps): JSX.Element  {
         </ChatPanel>
     );
 }
-
-const RoomPanel = styled.div`
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-`;
-
-const RoomContainer = styled.div`
-    height: 100%;
-    width: 100%;
-    display: flex;
-`;
 
 const ChatPanel = styled.div`
     height: 100%;
@@ -115,12 +92,6 @@ const ChatContainer = styled.div`
 const TextBox = styled.textarea`
     height: 15%;
     width: 100%;
-`;
-
-const ChannelInfo = styled.div`
-    height: 10%;
-    width: 100%;
-    border-bottom: 1px solid black;
 `;
 
 const Messages = styled.div`

@@ -165,6 +165,7 @@ function HomePage({ username }: { username: string }): JSX.Element {
 
             <RoomBody>
               <GameTable
+                allUsers={allUsers}
                 currentRoom={currentRoom}
                 connectedRooms={connectedRooms}
               />
@@ -172,14 +173,9 @@ function HomePage({ username }: { username: string }): JSX.Element {
                 message={message}
                 handleMessageChange={handleMessageChange}
                 sendMessage={sendMessage}
-                yourID={socketRef.current?.id || ''}
-                allUsers={allUsers}
-                allRooms={allRooms}
                 joinRoom={joinRoom}
-                createRoom={createRoom}
                 connectedRooms={connectedRooms}
                 currentRoom={currentRoom}
-                toggleRoom={toggleRoom}
                 messages={messages[currentRoom.room.name]}
               />
             </RoomBody>
