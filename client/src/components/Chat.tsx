@@ -17,13 +17,13 @@ interface Message {
 }
 
 interface ChatProps {
-  toggleChat: (chat: ChatState) => void;
+  toggleRoom: (room: RoomState) => void;
   joinRoom: (roomName: Room) => void;
   createRoom: (roomName: string, hostName: string) => void;
   sendMessage: () => void;
   yourID: string;
   messages: Message[];
-  currentChat: ChatState;
+  currentRoom: RoomState;
   connectedRooms: Room[];
   allRooms: Room[];
   allUsers: User[];
@@ -31,9 +31,9 @@ interface ChatProps {
   handleMessageChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
-interface ChatState {
+interface RoomState {
   isChannel: boolean;
-  chat: Room;
+  room: Room;
   receiverID: string;
 }
 
@@ -47,21 +47,8 @@ function Chat(props: ChatProps): JSX.Element  {
         );
     }
 
-    let gameBody;
-    if (!props.currentChat.isChannel || props.connectedRooms.some(room => room.name === props.currentChat.chat.name)) {
-        gameBody = (
-            <>
-            Gaming Time
-            </>
-        );
-    } else {
-        gameBody = (
-            <>Join Gaming Time</>
-        );
-    }
-
     let chatBody;
-    if (!props.currentChat.isChannel || props.connectedRooms.some(room => room.name === props.currentChat.chat.name)) {
+    if (!props.currentRoom.isChannel || props.connectedRooms.some(room => room.name === props.currentRoom.room.name)) {
         chatBody = (
             <Messages>
                 {props.messages.map(renderMessages)}
@@ -69,7 +56,7 @@ function Chat(props: ChatProps): JSX.Element  {
         );
     } else {
         chatBody = (
-            <button onClick={() => props.joinRoom(props.currentChat.chat)}>Join {props.currentChat.chat.name}</button>
+            <button onClick={() => props.joinRoom(props.currentRoom.room)}>Join {props.currentRoom.room.name}</button>
         );
     }
 
@@ -85,35 +72,17 @@ function Chat(props: ChatProps): JSX.Element  {
     };
 
     return (
-        <RoomPanel>
-            <ChannelInfo>
-                {props.currentChat.chat.name}
-                {props.currentChat.chat.host !== null && (
-                    <>
-                        <br />
-                        <span style={{ fontSize: '0.8em', color: 'grey' }}>
-                            Host: {findUsernameById(props.currentChat.chat.host)}
-                        </span>
-                    </>
-                )}
-            </ChannelInfo>
-            <RoomContainer>
-                <GamePanel>
-                    {gameBody}
-                </GamePanel>
-                <ChatPanel>
-                    <ChatContainer>
-                        {chatBody}
-                    </ChatContainer>
-                    <TextBox
-                        value={props.message}
-                        onChange={props.handleMessageChange}
-                        onKeyUp={handleMessageKeyPress}
-                        placeholder='say something'
-                    />
-                </ChatPanel>
-            </RoomContainer>
-        </RoomPanel>
+        <ChatPanel>
+            <ChatContainer>
+                {chatBody}
+            </ChatContainer>
+            <TextBox
+                value={props.message}
+                onChange={props.handleMessageChange}
+                onKeyUp={handleMessageKeyPress}
+                placeholder='say something'
+            />
+        </ChatPanel>
     );
 }
 
@@ -128,14 +97,6 @@ const RoomContainer = styled.div`
     height: 100%;
     width: 100%;
     display: flex;
-`;
-
-const GamePanel = styled.div`
-    width: 100%;
-    height: 100%;
-    overflow: scroll;
-    border-bottom: 1px solid black;
-    flex: 1;
 `;
 
 const ChatPanel = styled.div`

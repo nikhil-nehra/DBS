@@ -5,6 +5,8 @@ import * as io from "socket.io-client";
 
 import styled from 'styled-components';
 import Sidebar from '../components/Sidebar';
+import RoomHeader from '../components/RoomHeader';
+import GameTable from '../components/GameTable';
 import Chat from '../components/Chat';
 
 interface Message {
@@ -22,9 +24,9 @@ interface Room {
   host: string | null;
 }
 
-interface ChatState {
+interface RoomState {
   isChannel: boolean;
-  chat: Room;
+  room: Room;
   receiverID: string;
 }
 
@@ -38,7 +40,7 @@ const initialRoomState: Room[] = [
 
 function HomePage({ username }: { username: string }): JSX.Element {
   const [connected, setConnected] = useState(false);
-  const [currentChat, setCurrentChat] = useState<ChatState>({ isChannel: true, chat: { name: 'general', host: null }, receiverID: '' });
+  const [currentRoom, setCurrentRoom] = useState<RoomState>({ isChannel: true, room: { name: 'general', host: null }, receiverID: '' });
   const [connectedRooms, setConnectedRooms] = useState<Room[]>(initialRoomState);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [allRooms, setAllRooms] = useState<Room[]>([]);
@@ -61,15 +63,16 @@ function HomePage({ username }: { username: string }): JSX.Element {
       setAllUsers(newUsers);
     });
 
-    socketRef.current?.on('new_message', ({ content, sender, chatName }: { content: string, sender: string, chatName: string }) => {
+    socketRef.current?.on('new_message', ({ content, sender, roomName }: { content: string, sender: string, roomName: string }) => {
       setMessages(prevMessages => {
         const newMessages = produce(prevMessages, draft => {
-          if (draft[chatName]) {
-            draft[chatName].push({ content, sender });
+          if (draft[roomName]) {
+            draft[roomName].push({ content, sender });
           } else {
-            draft[chatName] = [{ content, sender }];
+            draft[roomName] = [{ content, sender }];
           }
         });
+        console.log(roomName)
         return newMessages;
       });
     });
@@ -104,16 +107,16 @@ function HomePage({ username }: { username: string }): JSX.Element {
   function sendMessage() {
     const payload = {
       content: message,
-      roomNumber: currentChat.isChannel ? currentChat.chat.name : currentChat.receiverID,
+      roomNumber: currentRoom.isChannel ? currentRoom.room.name : currentRoom.receiverID,
       sender: username,
-      chatName: currentChat.chat.name,
-      isChannel: currentChat.isChannel,
+      roomName: currentRoom.room.name,
+      isChannel: currentRoom.isChannel,
     };
 
     socketRef.current?.emit('send_message', payload);
 
     const newMessages = produce(messages, draft => {
-      draft[currentChat.chat.name].push({
+      draft[currentRoom.room.name].push({
         sender: username,
         content: message,
       });
@@ -121,14 +124,14 @@ function HomePage({ username }: { username: string }): JSX.Element {
     setMessages(newMessages);
   }
 
-  function toggleChat(newChat: ChatState) {
-    if (!messages[newChat.chat.name]) {
+  function toggleRoom(newRoom: RoomState) {
+    if (!messages[newRoom.room.name]) {
       const newMessages = produce(messages, draft => {
-        draft[newChat.chat.name] = [];
+        draft[newRoom.room.name] = [];
       });
       setMessages(newMessages);
     }
-    setCurrentChat(newChat);
+    setCurrentRoom(newRoom);
   }
 
   function createRoom(roomName: string, hostName: string) {
@@ -152,22 +155,35 @@ function HomePage({ username }: { username: string }): JSX.Element {
             yourID={socketRef.current?.id || ''}
             createRoom={createRoom}
             sendMessage={sendMessage}
-            toggleChat={toggleChat}
+            toggleRoom={toggleRoom}
           />
-          <Chat
-            message={message}
-            handleMessageChange={handleMessageChange}
-            sendMessage={sendMessage}
-            yourID={socketRef.current?.id || ''}
-            allUsers={allUsers}
-            allRooms={allRooms}
-            joinRoom={joinRoom}
-            createRoom={createRoom}
-            connectedRooms={connectedRooms}
-            currentChat={currentChat}
-            toggleChat={toggleChat}
-            messages={messages[currentChat.chat.name]}
-          />
+          <RoomPanel>
+            <RoomHeader
+              allUsers={allUsers}
+              currentRoom={currentRoom}
+            />
+
+            <RoomBody>
+              <GameTable
+                currentRoom={currentRoom}
+                connectedRooms={connectedRooms}
+              />
+              <Chat
+                message={message}
+                handleMessageChange={handleMessageChange}
+                sendMessage={sendMessage}
+                yourID={socketRef.current?.id || ''}
+                allUsers={allUsers}
+                allRooms={allRooms}
+                joinRoom={joinRoom}
+                createRoom={createRoom}
+                connectedRooms={connectedRooms}
+                currentRoom={currentRoom}
+                toggleRoom={toggleRoom}
+                messages={messages[currentRoom.room.name]}
+              />
+            </RoomBody>
+          </RoomPanel>
         </Container>
       )}
     </div>
@@ -176,6 +192,19 @@ function HomePage({ username }: { username: string }): JSX.Element {
 
 const Container = styled.div`
     height: 100vh;
+    width: 100%;
+    display: flex;
+`;
+
+const RoomPanel = styled.div`
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+`;
+
+const RoomBody = styled.div`
+    height: 100%;
     width: 100%;
     display: flex;
 `;

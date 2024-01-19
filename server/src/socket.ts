@@ -58,25 +58,25 @@ function setup(server: http.Server): void {
       callBack(messages[room.name], room);
     });
 
-    socket.on('send_message', ({ content, roomNumber, sender, chatName, isChannel }: { content: string; roomNumber: string; sender: string; chatName: string; isChannel: boolean }) => {
+    socket.on('send_message', ({ content, roomNumber, sender, roomName, isChannel }: { content: string; roomNumber: string; sender: string; roomName: string; isChannel: boolean }) => {
       if (isChannel) {
         const payload = {
           content,
-          chatName,
+          roomName,
           sender,
         };
         socket.to(roomNumber).emit('new_message', payload);
       } else {
         const payload = {
           content,
-          chatName: sender,
+          roomName: sender,
           sender,
         };
         socket.to(roomNumber).emit('new_message', payload);
       }
 
-      if (messages[chatName]) {
-        messages[chatName].push({
+      if (messages[roomName]) {
+        messages[roomName].push({
           sender,
           content,
         });

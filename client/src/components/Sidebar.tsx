@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent } from 'react';
 import styled from 'styled-components';
 
 interface Room {
@@ -17,31 +17,14 @@ interface SidebarProps {
   yourID: string;
   createRoom: (roomName: string, hostName: string) => void;
   sendMessage: () => void;
-  toggleChat: (chat: ChatState) => void;
+  toggleRoom: (room: RoomState) => void;
 }
 
-interface ChatState {
+interface RoomState {
     isChannel: boolean;
-    chat: Room;
+    room: Room;
     receiverID: string;
 }
-
-const SidebarContainer = styled.div`
-  height: 100%;
-  width: 10%;
-  border-right: 1px solid black;
-`;
-
-const Row = styled.div`
-  cursor: pointer;
-`;
-
-const RoomNameBox = styled.input`
-    height: 15px;
-    width: 100%;
-    padding: 5px;
-    box-sizing: border-box;
-`;
 
 function Sidebar(props: SidebarProps): JSX.Element {
     const [isCreatingRoom, setIsCreatingRoom] = useState(false);
@@ -90,13 +73,13 @@ function Sidebar(props: SidebarProps): JSX.Element {
     };
 
     function renderRooms(room: Room) {
-        const currentChat: ChatState = {
+        const currentChat: RoomState = {
             isChannel: true,
-            chat: room,
+            room: room,
             receiverID: '',
         };
         return (
-            <Row onClick={() => props.toggleChat(currentChat)} key={room.name}>
+            <Row onClick={() => props.toggleRoom(currentChat)} key={room.name}>
                 {room.name}
             </Row>
         );
@@ -110,14 +93,14 @@ function Sidebar(props: SidebarProps): JSX.Element {
                 </Row>
             );
         }
-        const currentChat: ChatState = {
+        const currentChat: RoomState = {
             isChannel: false,
-            chat: { name: user.username, host: null },
+            room: { name: user.username, host: null },
             receiverID: user.id,
         };
         return (
             <Row onClick={() => {
-                props.toggleChat(currentChat);
+                props.toggleRoom(currentChat);
             }} key={user.id}>
                 {user.username}
             </Row>
@@ -134,5 +117,22 @@ function Sidebar(props: SidebarProps): JSX.Element {
         </SidebarContainer>
     );
 }
+
+const SidebarContainer = styled.div`
+  height: 100%;
+  width: 10%;
+  border-right: 1px solid black;
+`;
+
+const Row = styled.div`
+  cursor: pointer;
+`;
+
+const RoomNameBox = styled.input`
+    height: 15px;
+    width: 100%;
+    padding: 5px;
+    box-sizing: border-box;
+`;
 
 export default Sidebar;
