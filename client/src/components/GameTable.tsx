@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 import PlayerChip from '../components/PlayerChip';
+import PlayingCard from '../components/PlayingCard';
 
 interface GameProps {
     currentRoom: RoomState;
@@ -25,7 +26,13 @@ interface RoomState {
 }
 
 function GameTable(props: GameProps): JSX.Element  {
-    const playerNames = ['Nikhil', 'P2', 'P3', 'P4']; // Replace with actual player data
+    const sharedCards = [
+        {suit: 'Spades', rank: 'Ace'},
+        {suit: 'Hearts', rank: '10'},
+        {suit: 'Diamonds', rank: 'King'},
+        {suit: 'Clubs', rank: 'Queen'},
+        {suit: 'Spades', rank: '9'},
+    ]; // Replace with actual card data
 
     let gameBody;
     if (!props.currentRoom.isChannel || props.connectedRooms.some(room => room.name === props.currentRoom.room.name)) {
@@ -38,6 +45,11 @@ function GameTable(props: GameProps): JSX.Element  {
                             players={props.allUsers}
                         />
                     </PlayerIconsContainer>
+                    <SharedCardsContainer>
+                        <PlayingCard
+                            cards={sharedCards}
+                        />
+                    </SharedCardsContainer>
                 </Table>
             </PokerTableContainer>
         );
@@ -91,5 +103,16 @@ const PlayerIconsContainer = styled.div`
   bottom: 10px;
   width: 100%;
 `;
+
+const SharedCardsContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute; 
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+`;
+
 
 export default GameTable;
